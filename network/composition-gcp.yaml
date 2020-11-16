@@ -1,0 +1,46 @@
+apiVersion: apiextensions.crossplane.io/v1alpha1
+kind: Composition
+metadata:
+  name: gcp.compositenetworks.multik8s.platformref.crossplane.io
+  labels:
+    provider: GCP
+spec:
+  writeConnectionSecretsToNamespace: crossplane-system
+  compositeTypeRef:
+    apiVersion: multik8s.platformref.crossplane.io/v1alpha1
+    kind: CompositeNetwork
+  resources:
+    - base:
+        apiVersion: compute.gcp.crossplane.io/v1beta1
+        kind: Network
+        spec:
+          forProvider:
+            autoCreateSubnetworks: false
+            routingConfig:
+              routingMode: REGIONAL
+          reclaimPolicy: Delete
+      patches:
+        - fromFieldPath: spec.id
+          toFieldPath: metadata.labels[networks.multik8s.platformref.crossplane.io/network-id]
+    - base:
+        apiVersion: compute.gcp.crossplane.io/v1beta1
+        kind: Subnetwork
+        spec:
+          forProvider:
+            region: us-west2
+            networkSelector:
+              # This selector ensures this Subnetwork will select and use the
+              # above Network. They will both be part of the XR, and thus their
+              # controller references will match.
+              matchControllerRef: true
+            privateIpGoogleAccess: true
+            ipCidrRange: 172.16.0.0/16
+            secondaryIpRanges:
+              - rangeName: pods
+                ipCidrRange: 10.200.0.0/14
+              - rangeName: services
+                ipCidrRange: 10.204.0.0/16
+          reclaimPolicy: Delete
+      patches:
+        - fromFieldPath: spec.id
+          toFieldPath: metadata.labels[networks.multik8s.platformref.crossplane.io/network-id]

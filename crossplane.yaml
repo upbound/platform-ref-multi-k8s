@@ -1,0 +1,54 @@
+apiVersion: meta.pkg.crossplane.io/v1alpha1
+kind: Configuration
+metadata:
+  name: platform-ref-multi-k8s
+  annotations:
+    company: Upbound
+    maintainer: Jared Watts <jared@upbound.io>
+    keywords: aws, gcp, azure, cloud-native, kubernetes, example, platform, reference
+    source: github.com/upbound/platform-ref-multi-k8s
+    license: Apache-2.0
+    descriptionShort: |
+      The reference platform for multi-cloud Kubernetes instances.
+
+    description: |
+      This reference platform Configuration for multi-cloud Kubernetes is a starting point to build,
+      run, and operate your own internal cloud platform and offer a self-service console and API to
+      your internal teams.
+
+    readme: |
+      This reference platform `Configuration` for multi-cloud Kubernetes is a starting point
+      to build, run, and operate your own internal cloud platform and offer a self-service console
+      and API to your internal teams. It provides platform APIs to provision fully configured
+      Kubernetes clusters across multiple cloud providers, such as AWS, GCP, and Azure. Your app
+      teams can use these platform APIs to self-service provision their own Kubernetes clusters on
+      demand when they need them, all while ensuring the configuration and policy guardrails that
+      you specified are also applied.
+
+      These platform APIs are composed using the following Crossplane providers:
+
+      * [Crossplane AWS Provider](https://doc.crds.dev/github.com/crossplane/provider-aws)
+      * [Crossplane GCP Provider](https://doc.crds.dev/github.com/crossplane/provider-gcp)
+      * [Crossplane Azure Provider](https://doc.crds.dev/github.com/crossplane/provider-azure)
+
+      App deployments can securely connect to the infrastructure they need using secrets distributed
+      directly to the app namespace.
+
+      [Quickstart Guide](https://github.com/upbound/platform-ref-multi-k8s/#quick-start)
+
+      [APIs in this
+      Configuration](https://github.com/upbound/platform-ref-multi-k8s/#apis-in-this-configuration)
+
+      To learn more checkout the [GitHub repo](https://github.com/upbound/platform-ref-multi-k8s/)
+      that you can copy and customize to meet the exact needs of your organization!
+
+spec:
+  crossplane:
+    version: ">=v0.14.0-0"
+  dependsOn:
+    - provider: crossplane/provider-aws
+      version: ">=v0.14.0-0"
+    - provider: crossplane/provider-gcp
+      version: ">=v0.13.0-0"
+    - provider: crossplane/provider-azure
+      version: ">=v0.13.0-0"
