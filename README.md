@@ -39,16 +39,12 @@ curl -sL https://raw.githubusercontent.com/crossplane/crossplane/master/install.
 cp kubectl-crossplane /usr/local/bin
 ```
 
-#### Install Providers into your Platform
+#### Install the Platform Configuration
 
 ```console
-PROVIDER_AWS=registry.upbound.io/crossplane/provider-aws:v0.14.0
-PROVIDER_GCP=registry.upbound.io/crossplane/provider-gcp:v0.13.0
-PROVIDER_HELM=registry.upbound.io/crossplane/provider-helm:v0.3.7
+PLATFORM_CONFIG=registry.upbound.io/upbound/platform-ref-multi-k8s:v0.0.2
 
-kubectl crossplane install provider ${PROVIDER_AWS}
-kubectl crossplane install provider ${PROVIDER_GCP}
-kubectl crossplane install provider ${PROVIDER_HELM}
+kubectl crossplane install configuration ${PLATFORM_CONFIG}
 kubectl get pkg
 ```
 
@@ -86,15 +82,6 @@ Create the `ProviderConfig`, ensuring to set the `projectID` to your specific GC
 
 ```console
 kubectl apply -f examples/provider-default-gcp.yaml
-```
-
-#### Install the Platform Configuration
-
-```console
-PLATFORM_CONFIG=registry.upbound.io/upbound/platform-ref-multi-k8s:v0.0.1
-
-kubectl crossplane install configuration ${PLATFORM_CONFIG}
-kubectl get pkg
 ```
 
 #### Invite App Teams to you Organization in Upbound Cloud
@@ -187,7 +174,7 @@ Set these to match your settings:
 UPBOUND_ORG=acme
 UPBOUND_ACCOUNT_EMAIL=me@acme.io
 REPO=platform-ref-multi-k8s
-VERSION_TAG=v0.0.1
+VERSION_TAG=v0.0.2
 REGISTRY=registry.upbound.io
 PLATFORM_CONFIG=${REGISTRY:+$REGISTRY/}${UPBOUND_ORG}/${REPO}:${VERSION_TAG}
 ```
