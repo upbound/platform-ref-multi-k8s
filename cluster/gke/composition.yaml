@@ -1,4 +1,4 @@
-apiVersion: apiextensions.crossplane.io/v1alpha1
+apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
   name: gke.multik8s.platformref.crossplane.io
@@ -99,7 +99,7 @@ spec:
         - fromFieldPath: spec.parameters.nodes.count
           toFieldPath: spec.forProvider.autoscaling.maxNodeCount
     - base:
-        apiVersion: helm.crossplane.io/v1alpha1
+        apiVersion: helm.crossplane.io/v1beta1
         kind: ProviderConfig
         spec:
           credentials:
