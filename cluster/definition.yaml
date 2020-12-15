@@ -167,5 +167,5 @@ spec:
                 - nodes
                 - networkRef
             required:
-            - name
+            - id
             - parameters
