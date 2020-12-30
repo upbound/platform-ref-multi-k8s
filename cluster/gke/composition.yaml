@@ -17,6 +17,12 @@ spec:
           forProvider:
             initialClusterVersion: "1.16"
             location: us-west2
+            masterAuth:
+              # setting this master auth user name enables basic auth so that a client (e.g.,
+              # provider-helm), can connect with the generated kubeconfig from the connection secret
+              username: admin
+            masterAuthorizedNetworksConfig:
+              enabled: false
             ipAllocationPolicy:
               useIpAliases: true
               clusterSecondaryRangeName: pods
@@ -105,11 +111,12 @@ spec:
           credentials:
             source: Secret
             secretRef:
-              namespace: crossplane-system
               key: kubeconfig
       patches:
         - fromFieldPath: spec.id
           toFieldPath: metadata.name
+        - fromFieldPath: spec.writeConnectionSecretToRef.namespace
+          toFieldPath: spec.credentials.secretRef.namespace
         # This ProviderConfig uses the above GKE cluster's connection secret as
         # its credentials secret.
         - fromFieldPath: "metadata.uid"
