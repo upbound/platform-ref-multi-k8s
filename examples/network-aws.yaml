@@ -3,9 +3,9 @@ kind: Network
 metadata:
   name: network-aws
 spec:
-  id: multik8s-network
+  id: multik8s-network-aws
   clusterRef:
-    id: multik8s-cluster
+    id: multik8s-cluster-aws
   compositionSelector:
     matchLabels:
       provider: AWS

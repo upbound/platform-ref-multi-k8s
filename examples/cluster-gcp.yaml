@@ -6,7 +6,7 @@ spec:
   compositionSelector:
     matchLabels:
       provider: GCP
-  id: multik8s-cluster
+  id: multik8s-cluster-gcp
   parameters:
     nodes:
       count: 3
@@ -16,6 +16,6 @@ spec:
         prometheus:
           version: "10.0.2"
     networkRef:
-      id: multik8s-network
+      id: multik8s-network-gcp
   writeConnectionSecretToRef:
-    name: cluster-conn
+    name: cluster-conn-gcp
