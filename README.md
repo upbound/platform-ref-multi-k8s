@@ -42,7 +42,7 @@ cp kubectl-crossplane /usr/local/bin
 #### Install the Platform Configuration
 
 ```console
-PLATFORM_CONFIG=registry.upbound.io/upbound/platform-ref-multi-k8s:v0.0.5
+PLATFORM_CONFIG=registry.upbound.io/upbound/platform-ref-multi-k8s:v0.0.6
 
 kubectl crossplane install configuration ${PLATFORM_CONFIG}
 kubectl get pkg
@@ -174,7 +174,7 @@ Set these to match your settings:
 UPBOUND_ORG=acme
 UPBOUND_ACCOUNT_EMAIL=me@acme.io
 REPO=platform-ref-multi-k8s
-VERSION_TAG=v0.0.5
+VERSION_TAG=v0.0.6
 REGISTRY=registry.upbound.io
 PLATFORM_CONFIG=${REGISTRY:+$REGISTRY/}${UPBOUND_ORG}/${REPO}:${VERSION_TAG}
 ```
