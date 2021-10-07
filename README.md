@@ -218,7 +218,7 @@ listed in the Crossplane provider docs:
 * [Crossplane Azure Provider](https://doc.crds.dev/github.com/crossplane/provider-azure)
 
 To learn more see [Configuration
-Packages](https://crossplane.io/docs/v0.14/getting-started/package-infrastructure.html).
+Packages](https://crossplane.io/docs/v1.4/getting-started/create-configuration.html).
 
 ## Learn More
 
