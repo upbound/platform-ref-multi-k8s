@@ -63,8 +63,7 @@ kubectl apply -f examples/provider-default-aws.yaml
 
 #### GCP
 
-Set up your GCP account keyfile by following the instructions on:
-https://crossplane.io/docs/v0.14/getting-started/install-configure.html#select-provider
+Set up your GCP account keyfile by following the instructions [here](https://crossplane.io/docs/v1.4/getting-started/install-configure.html#select-a-getting-started-configuration).
 
 Ensure that the following roles are added to your service account:
 
