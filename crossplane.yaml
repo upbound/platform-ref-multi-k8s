@@ -101,7 +101,7 @@ spec:
     - provider: registry.upbound.io/crossplane/provider-aws
       version: ">=v0.14.0-0"
     - provider: registry.upbound.io/crossplane/provider-gcp
-      version: ">=v0.13.0-0"
+      version: ">=v0.18.0-0"
     - provider: registry.upbound.io/crossplane/provider-azure
       version: ">=v0.13.0-0"
     - provider: registry.upbound.io/crossplane/provider-helm
