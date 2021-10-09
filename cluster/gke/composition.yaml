@@ -11,8 +11,8 @@ spec:
     kind: GKE
   resources:
     - base:
-        apiVersion: container.gcp.crossplane.io/v1beta1
-        kind: GKECluster
+        apiVersion: container.gcp.crossplane.io/v1beta2
+        kind: Cluster
         spec:
           forProvider:
             initialClusterVersion: "1.18"
@@ -55,7 +55,7 @@ spec:
     # Each cluster has one node pool. Its nodes are spread evenly across the zones
     # in which the cluster exists.
     - base:
-        apiVersion: container.gcp.crossplane.io/v1alpha1
+        apiVersion: container.gcp.crossplane.io/v1beta1
         kind: NodePool
         spec:
           forProvider:
