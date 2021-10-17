@@ -15,7 +15,7 @@ spec:
         kind: Cluster
         spec:
           forProvider:
-            initialClusterVersion: "1.18"
+            initialClusterVersion: "1.20"
             location: us-west2
             masterAuth:
               # setting this master auth user name enables basic auth so that a client (e.g.,
@@ -109,6 +109,11 @@ spec:
             source: Secret
             secretRef:
               key: kubeconfig
+          identity:
+            type: GoogleApplicationCredentials
+            source: Secret
+            secretRef:
+              key: credentials.json
       patches:
         - fromFieldPath: spec.id
           toFieldPath: metadata.name
@@ -118,6 +123,23 @@ spec:
         # its credentials secret.
         - fromFieldPath: "metadata.uid"
           toFieldPath: spec.credentials.secretRef.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-gkecluster"
+        - fromFieldPath: spec.writeConnectionSecretToRef.namespace
+          toFieldPath: spec.credentials.secretRef.namespace
+        # Identity secretReference used to authenticate to the Kubernetes API.
+        - fromFieldPath: "metadata.uid"
+          toFieldPath: spec.identity.secretRef.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-gkecluster"
+        - fromFieldPath: spec.writeConnectionSecretToRef.namespace
+          toFieldPath: spec.identity.secretRef.namespace
+        - fromFieldPath: "metadata.uid"
+          toFieldPath: spec.identity.secretRef.name
           transforms:
             - type: string
               string:
