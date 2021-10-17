@@ -126,16 +126,10 @@ spec:
           transforms:
             - type: string
               string:
-                fmt: "%s-gkecluster"
+                fmt: "%s-gkecluster-credentials"
         - fromFieldPath: spec.writeConnectionSecretToRef.namespace
           toFieldPath: spec.credentials.secretRef.namespace
         # Identity secretReference used to authenticate to the Kubernetes API.
-        - fromFieldPath: "metadata.uid"
-          toFieldPath: spec.identity.secretRef.name
-          transforms:
-            - type: string
-              string:
-                fmt: "%s-gkecluster"
         - fromFieldPath: spec.writeConnectionSecretToRef.namespace
           toFieldPath: spec.identity.secretRef.namespace
         - fromFieldPath: "metadata.uid"
@@ -143,6 +137,6 @@ spec:
           transforms:
             - type: string
               string:
-                fmt: "%s-gkecluster"
+                fmt: "%s-gkecluster-identity"
       readinessChecks:
         - type: None
