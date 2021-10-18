@@ -65,7 +65,7 @@ kubectl apply -f examples/provider-default-aws.yaml
 
 Set up your GCP account keyfile by following the instructions [here](https://crossplane.io/docs/v1.4/getting-started/install-configure.html#select-a-getting-started-configuration).
 
-Ensure that the following roles are added to your service account:
+Ensure that the following roles are added to your service account (e.g. `sa-test`):
 
 * `roles/compute.networkAdmin`
 * `roles/container.admin`
@@ -74,7 +74,7 @@ Ensure that the following roles are added to your service account:
 Then create the secret using the given `creds.json` file:
 
 ```console
-kubectl create secret generic gcp-creds -n crossplane-system --from-file=key=./creds.json
+kubectl create secret generic gcp-credentials -n crossplane-system --from-file=credentials.json=./creds.json
 ```
 
 Create the `ProviderConfig`, ensuring to set the `projectID` to your specific GCP project:
