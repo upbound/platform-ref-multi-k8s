@@ -58,7 +58,7 @@ spec:
             resourcesVpcConfig:
               endpointPrivateAccess: true
               endpointPublicAccess: true
-            version: "1.16"
+            version: "1.21"
       patches:
         - fromFieldPath: metadata.annotations[crossplane.io/external-name]
           toFieldPath: metadata.annotations[crossplane.io/external-name]
