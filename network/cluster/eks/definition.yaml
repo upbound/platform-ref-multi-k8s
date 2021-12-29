@@ -1,0 +1,61 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: eks.multik8s.platformref.crossplane.io
+spec:
+  connectionSecretKeys:
+  - kubeconfig
+  group: multik8s.platformref.crossplane.io
+  names:
+    kind: EKS
+    plural: eks
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              id:
+                type: string
+                description: ID of this Cluster that other objects will use to refer to it.
+              parameters:
+                type: object
+                description: EKS configuration parameters.
+                properties:
+                  nodes:
+                    type: object
+                    description: EKS node configuration parameters.
+                    properties:
+                      count:
+                        type: integer
+                        description: Desired node count, from 1 to 100.
+                      size:
+                        type: string
+                        description: Size of node.
+                        enum:
+                        - small
+                        - medium
+                        - large
+                    required:
+                    - count
+                    - size
+                  networkRef:
+                    type: object
+                    description: "A reference to the Network object that this cluster should be
+                    connected to."
+                    properties:
+                      id:
+                        type: string
+                        description: ID of the Network object this ref points to.
+                    required:
+                    - id
+                required:
+                - nodes
+                - networkRef
+            required:
+            - parameters

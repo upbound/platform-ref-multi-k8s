@@ -1,0 +1,21 @@
+apiVersion: multik8s.platformref.crossplane.io/v1alpha1
+kind: Cluster
+metadata:
+  name: multik8s-cluster-gcp
+spec:
+  compositionSelector:
+    matchLabels:
+      provider: GCP
+  id: multik8s-cluster-gcp
+  parameters:
+    nodes:
+      count: 3
+      size: small
+    services:
+      operators:
+        prometheus:
+          version: "10.0.2"
+    networkRef:
+      id: multik8s-network-gcp
+  writeConnectionSecretToRef:
+    name: cluster-conn-gcp

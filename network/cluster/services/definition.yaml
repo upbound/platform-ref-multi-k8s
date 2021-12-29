@@ -1,0 +1,45 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata:
+  name: services.multik8s.platformref.crossplane.io
+spec:
+  group: multik8s.platformref.crossplane.io
+  names:
+    kind: Services
+    plural: services
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              operators:
+                type: object
+                description: Configuration for operators.
+                properties:
+                  prometheus:
+                    type: object
+                    description: Configuration for the Prometheus operator.
+                    properties:
+                      version:
+                        type: string
+                        description: Prometheus operator version to run.
+              providerConfigRef:
+                type: object
+                description: "A reference to the ProviderConfig of the cluster that services should
+                be deployed to."
+                properties:
+                  name:
+                    type: string
+                    description: "Name of the Kubernetes provider configuration.
+                      This will typically be the name of the cluster with a
+                      five character suffix appended."
+                required:
+                - name
+            required:
+            - providerConfigRef

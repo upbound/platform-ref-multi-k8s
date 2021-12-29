@@ -1,0 +1,68 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: aks.multik8s.platformref.crossplane.io
+  labels:
+    provider: AZURE
+spec:
+  writeConnectionSecretsToNamespace: crossplane-system
+  compositeTypeRef:
+    apiVersion: multik8s.platformref.crossplane.io/v1alpha1
+    kind: AKS
+  resources:
+    - base:
+        apiVersion: compute.azure.crossplane.io/v1alpha3
+        kind: AKSCluster
+        spec:
+          dnsNamePrefix: platform-ref-azure-cluster
+          location: West US 2
+          version: "1.21.2"
+      patches:
+        - fromFieldPath: metadata.annotations[crossplane.io/external-name]
+          toFieldPath: metadata.annotations[crossplane.io/external-name]
+        - fromFieldPath: spec.id
+          toFieldPath: spec.resourceGroupNameSelector.matchLabels[multik8s.platformref.crossplane.io/app]
+        - fromFieldPath: spec.id
+          toFieldPath: spec.vnetSubnetIDSelector.matchLabels[multik8s.platformref.crossplane.io/app]
+        - fromFieldPath: spec.parameters.nodes.size
+          toFieldPath: spec.nodeVMSize
+          transforms:
+            - type: map
+              map:
+                small: Standard_B2s
+                medium: Standard_B4ms
+                large: Standard_B8ms
+        - fromFieldPath: "spec.parameters.nodes.count"
+          toFieldPath: "spec.nodeCount"
+        - fromFieldPath: spec.writeConnectionSecretToRef.namespace
+          toFieldPath: spec.writeConnectionSecretToRef.namespace
+        - fromFieldPath: spec.writeConnectionSecretToRef.name
+          toFieldPath: spec.writeConnectionSecretToRef.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-aks"
+      connectionDetails:
+        - fromConnectionSecretKey: kubeconfig
+    - base:
+        apiVersion: helm.crossplane.io/v1beta1
+        kind: ProviderConfig
+        spec:
+          credentials:
+            source: Secret
+            secretRef:
+              namespace: upbound-systen
+              key: kubeconfig
+      patches:
+        - fromFieldPath: spec.id
+          toFieldPath: metadata.name
+        - fromFieldPath: spec.writeConnectionSecretToRef.namespace
+          toFieldPath: spec.credentials.secretRef.namespace
+        # This ProviderConfig uses the above AKS cluster's connection secret as
+        # its credentials secret.
+        - fromFieldPath: spec.writeConnectionSecretToRef.name
+          toFieldPath: spec.credentials.secretRef.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-aks"

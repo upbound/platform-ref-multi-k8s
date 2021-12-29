@@ -1,0 +1,131 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: gke.multik8s.platformref.crossplane.io
+  labels:
+    provider: GCP
+spec:
+  writeConnectionSecretsToNamespace: crossplane-system
+  compositeTypeRef:
+    apiVersion: multik8s.platformref.crossplane.io/v1alpha1
+    kind: GKE
+  resources:
+    - base:
+        apiVersion: container.gcp.crossplane.io/v1beta2
+        kind: Cluster
+        spec:
+          forProvider:
+            initialClusterVersion: "1.20"
+            location: us-west2
+            serviceAccount: sa-test
+            masterAuthorizedNetworksConfig:
+              enabled: false
+            ipAllocationPolicy:
+              useIpAliases: true
+              clusterSecondaryRangeName: pods
+              servicesSecondaryRangeName: services
+            networkConfig:
+              enableIntraNodeVisibility: true
+            loggingService: logging.googleapis.com/kubernetes
+            monitoringService: monitoring.googleapis.com/kubernetes
+            addonsConfig:
+              gcePersistentDiskCsiDriverConfig:
+                enabled: true
+      patches:
+        - fromFieldPath: metadata.uid
+          toFieldPath: spec.writeConnectionSecretToRef.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-gkecluster"
+        - fromFieldPath: spec.writeConnectionSecretToRef.namespace
+          toFieldPath: spec.writeConnectionSecretToRef.namespace
+        # Create this cluster in the Network and Subnetwork referenced by network ID
+        - fromFieldPath: "spec.parameters.networkRef.id"
+          toFieldPath: spec.forProvider.networkSelector.matchLabels[networks.multik8s.platformref.crossplane.io/network-id]
+        - fromFieldPath: "spec.parameters.networkRef.id"
+          toFieldPath: spec.forProvider.subnetworkSelector.matchLabels[networks.multik8s.platformref.crossplane.io/network-id]
+      # The control plane supplies the 'kubeconfig' connection secret key, which
+      # is required by the XR.
+      connectionDetails:
+        - fromConnectionSecretKey: kubeconfig
+    # Each cluster has one node pool. Its nodes are spread evenly across the zones
+    # in which the cluster exists.
+    - base:
+        apiVersion: container.gcp.crossplane.io/v1beta1
+        kind: NodePool
+        spec:
+          forProvider:
+            location: us-west2
+            initialNodeCount: 1
+            clusterSelector:
+              # Attach this node pool to the GKECluster created above.
+              matchControllerRef: true
+            autoscaling:
+              enabled: true
+            config:
+              diskType: pd-standard
+              diskSizeGb: 100
+              imageType: COS
+              preemptible: true
+              shieldedInstanceConfig:
+                enableIntegrityMonitoring: true
+                enableSecureBoot: true
+              metadata:
+                disable-legacy-endpoints: "true"
+              oauthScopes:
+                - https://www.googleapis.com/auth/cloud-platform
+            management:
+              autoRepair: true
+              autoUpgrade: false
+            maxPodsConstraint:
+              maxPodsPerNode: 55
+          reclaimPolicy: Delete
+      patches:
+        # Derive the node count and type of this node pool from the XR. Note that
+        # the XR's node count is set to initial, min, and max.
+        - fromFieldPath: spec.parameters.nodes.size
+          toFieldPath: spec.forProvider.config.machineType
+          transforms:
+            - type: map
+              map:
+                small: n1-standard-4
+                medium: n1-standard-16
+                large: n1-standard-32
+        - fromFieldPath: spec.parameters.nodes.count
+          toFieldPath: spec.forProvider.initialNodeCount
+        - fromFieldPath: spec.parameters.nodes.count
+          toFieldPath: spec.forProvider.autoscaling.minNodeCount
+        - fromFieldPath: spec.parameters.nodes.count
+          toFieldPath: spec.forProvider.autoscaling.maxNodeCount
+    - base:
+        apiVersion: helm.crossplane.io/v1beta1
+        kind: ProviderConfig
+        spec:
+          credentials:
+            source: Secret
+            secretRef:
+              key: kubeconfig
+          identity:
+            type: GoogleApplicationCredentials
+            source: Secret
+            secretRef:
+              name: gcp-credentials
+              key: credentials.json
+      patches:
+        - fromFieldPath: spec.id
+          toFieldPath: metadata.name
+        - fromFieldPath: spec.writeConnectionSecretToRef.namespace
+          toFieldPath: spec.credentials.secretRef.namespace
+        # This ProviderConfig uses the above GKE cluster's connection secret as
+        # its credentials secret.
+        - fromFieldPath: "metadata.uid"
+          toFieldPath: spec.credentials.secretRef.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-gkecluster"
+        - fromFieldPath: spec.writeConnectionSecretToRef.namespace
+          toFieldPath: spec.identity.secretRef.namespace
+      readinessChecks:
+        - type: None

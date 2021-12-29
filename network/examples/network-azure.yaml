@@ -1,0 +1,11 @@
+apiVersion: multik8s.platformref.crossplane.io/v1alpha1
+kind: Network
+metadata:
+  name: network
+spec:
+  id: multik8s-network-azure
+  clusterRef:
+    id: multik8s-cluster-azure
+  compositionSelector:
+    matchLabels:
+      provider: AZURE

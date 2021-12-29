@@ -1,0 +1,38 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: services.multik8s.platformref.crossplane.io
+  labels:
+    provider: helm
+spec:
+  writeConnectionSecretsToNamespace: crossplane-system
+  compositeTypeRef:
+    apiVersion: multik8s.platformref.crossplane.io/v1alpha1
+    kind: Services
+  resources:
+    - base:
+        apiVersion: helm.crossplane.io/v1beta1
+        kind: Release
+        spec:
+          rollbackLimit: 3
+          forProvider:
+            namespace: operators
+            chart:
+              # from https://github.com/prometheus-community/helm-charts
+              # Note that default values are overridden by the patches below.
+              name: kube-prometheus-stack
+              repository: https://prometheus-community.github.io/helm-charts
+              version: "10.1.0"
+            values: {}
+      patches:
+        # All Helm releases derive their labels and annotations from the XR.
+        - fromFieldPath: metadata.labels
+          toFieldPath: metadata.labels
+        - fromFieldPath: metadata.annotations
+          toFieldPath: metadata.annotations
+        # All Helm releases derive the ProviderConfig to use from the XR.
+        - fromFieldPath: spec.providerConfigRef.name
+          toFieldPath: spec.providerConfigRef.name
+        # Derive the Prometheus operator image and tag from the XR.
+        - fromFieldPath: spec.operators.prometheus.version
+          toFieldPath: spec.forProvider.chart.version

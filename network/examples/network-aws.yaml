@@ -1,0 +1,11 @@
+apiVersion: multik8s.platformref.crossplane.io/v1alpha1
+kind: Network
+metadata:
+  name: network-aws
+spec:
+  id: multik8s-network-aws
+  clusterRef:
+    id: multik8s-cluster-aws
+  compositionSelector:
+    matchLabels:
+      provider: AWS

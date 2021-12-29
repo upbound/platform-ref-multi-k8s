@@ -1,0 +1,66 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: azure.compositenetworks.multik8s.platformref.crossplane.io
+  labels:
+    provider: AZURE
+spec:
+  writeConnectionSecretsToNamespace: crossplane-system
+  compositeTypeRef:
+    apiVersion: multik8s.platformref.crossplane.io/v1alpha1
+    kind: CompositeNetwork
+  resources:
+  - base:
+      apiVersion: azure.crossplane.io/v1alpha3
+      kind: ResourceGroup
+      spec:
+        location: West US 2
+    patches:
+      - fromFieldPath: spec.clusterRef.id
+        toFieldPath: metadata.name
+        transforms:
+            - type: string
+              string:
+                fmt: "%s-rg"
+      - fromFieldPath: spec.clusterRef.id
+        toFieldPath: metadata.labels[multik8s.platformref.crossplane.io/app]
+  - base:
+      apiVersion: network.azure.crossplane.io/v1alpha3
+      kind: VirtualNetwork
+      spec:
+        resourceGroupNameSelector:
+          matchControllerRef: true
+        location: West US 2
+        properties:
+          addressSpace:
+            addressPrefixes: ['192.168.0.0/16']
+    patches:
+      - fromFieldPath: spec.clusterRef.id
+        toFieldPath: metadata.labels[app]
+      - fromFieldPath: spec.clusterRef.id
+        toFieldPath: metadata.name
+        transforms:
+            - type: string
+              string:
+                fmt: "%s-vnet"
+  - base:
+      apiVersion: network.azure.crossplane.io/v1alpha3
+      kind: Subnet
+      spec:
+        resourceGroupNameSelector:
+          matchControllerRef: true
+        virtualNetworkNameSelector:
+          matchControllerRef: true
+        properties:
+          addressPrefix: '192.168.1.0/24'
+          serviceEndpoints:
+            - service: Microsoft.Sql
+    patches:
+      - fromFieldPath: spec.clusterRef.id
+        toFieldPath: metadata.labels[multik8s.platformref.crossplane.io/app]
+      - fromFieldPath: spec.clusterRef.id
+        toFieldPath: metadata.name
+        transforms:
+            - type: string
+              string:
+                fmt: "%s-sn"

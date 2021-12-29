@@ -1,0 +1,11 @@
+apiVersion: multik8s.platformref.crossplane.io/v1alpha1
+kind: Network
+metadata:
+  name: network-gcp
+spec:
+  id: multik8s-network-gcp
+  clusterRef:
+    id: multik8s-cluster-gcp
+  compositionSelector:
+    matchLabels:
+      provider: GCP

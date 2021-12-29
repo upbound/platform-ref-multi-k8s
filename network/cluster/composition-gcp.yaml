@@ -1,0 +1,44 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: gke.compositeclusters.multik8s.platformref.crossplane.io
+  labels:
+    provider: GCP
+spec:
+  writeConnectionSecretsToNamespace: crossplane-system
+  compositeTypeRef:
+    apiVersion: multik8s.platformref.crossplane.io/v1alpha1
+    kind: CompositeCluster
+  resources:
+    - base:
+        apiVersion: multik8s.platformref.crossplane.io/v1alpha1
+        kind: GKE
+      connectionDetails:
+        - fromConnectionSecretKey: kubeconfig
+      patches:
+        - fromFieldPath: spec.id
+          toFieldPath: spec.id
+        - fromFieldPath: spec.id
+          toFieldPath: metadata.annotations[crossplane.io/external-name]
+        - fromFieldPath: metadata.uid
+          toFieldPath: spec.writeConnectionSecretToRef.name
+          transforms:
+            - type: string
+              string:
+                fmt: "%s-gke"
+        - fromFieldPath: spec.writeConnectionSecretToRef.namespace
+          toFieldPath: spec.writeConnectionSecretToRef.namespace
+        - fromFieldPath: spec.parameters.nodes.count
+          toFieldPath: spec.parameters.nodes.count
+        - fromFieldPath: spec.parameters.nodes.size
+          toFieldPath: spec.parameters.nodes.size
+        - fromFieldPath: spec.parameters.networkRef.id
+          toFieldPath: spec.parameters.networkRef.id
+    - base:
+        apiVersion: multik8s.platformref.crossplane.io/v1alpha1
+        kind: Services
+      patches:
+        - fromFieldPath: spec.id
+          toFieldPath: spec.providerConfigRef.name
+        - fromFieldPath: spec.parameters.services.operators.prometheus.version
+          toFieldPath: spec.operators.prometheus.version
