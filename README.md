@@ -83,6 +83,22 @@ Create the `ProviderConfig`, ensuring to set the `projectID` to your specific GC
 kubectl apply -f examples/provider-default-gcp.yaml
 ```
 
+#### Azure
+
+Set up the Azure credentials and default Azure `ProviderConfig`:
+
+```console
+az ad sp create-for-rbac --sdk-auth --role Owner > "creds.json"
+```
+
+```console
+kubectl create secret generic azure-creds -n crossplane-system --from-file=creds=./creds.json
+```
+
+```console
+kubectl apply -f examples/provider-default-azure.yaml
+```
+
 #### Invite App Teams to you Organization in Upbound Cloud
 
 1. Create a team `Workspace` in Upbound Cloud, named `team1`.

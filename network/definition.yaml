@@ -28,6 +28,7 @@ metadata:
           enum:
           - AWS
           - GCP
+          - AZURE
           validation:
           - required: true
             customError: Cloud provider is required.

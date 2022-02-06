@@ -1,0 +1,21 @@
+apiVersion: multik8s.platformref.crossplane.io/v1alpha1
+kind: Cluster
+metadata:
+  name: multik8s-cluster-azure
+spec:
+  compositionSelector:
+    matchLabels:
+      provider: AZURE
+  id: multik8s-cluster-azure #This field is used as a reference match for network and database composite resources via clusterRef.id
+  parameters:
+    nodes:
+      count: 1
+      size: medium
+    services:
+      operators:
+        prometheus:
+          version: "15.0.1"
+    networkRef:
+      id: multik8s-network-azure
+  writeConnectionSecretToRef:
+    name: cluster-conn-azure
