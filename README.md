@@ -160,8 +160,8 @@ kubectl delete providers.pkg.crossplane.io provider-helm
   * [composition-aws.yaml](cluster/composition-aws.yaml) includes (transitively):
     * `EKSCluster`
     * `NodeGroup`
-    * `IAMRole`
-    * `IAMRolePolicyAttachment`
+    * `Role`
+    * `RolePolicyAttachment`
     * `HelmReleases` for Prometheus and other cluster services.
   * [composition-gcp.yaml](cluster/composition-gcp.yaml) includes (transitively):
     * `GKECluster`
