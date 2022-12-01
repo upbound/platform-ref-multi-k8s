@@ -1,6 +1,9 @@
 . ./vars.sh
 
-kubectl delete -n grpl-test GrappleApi mygrapi
+kubectl delete -n grpl-test GrappleApi mygrapi 2>/dev/null
+kubectl delete objects -l crossplane.io/claim-name=mygrapi 2>/dev/null
+kubectl delete crd customresourcedefinition.apiextensions.k8s.io/objects.kubernetes.crossplane.io 2>/dev/null
+
 kubectl delete ns ${TESTNS} 2>/dev/null
 
 echo "delete all compositions"

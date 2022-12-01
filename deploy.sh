@@ -1,7 +1,7 @@
 . ./vars.sh
 
 echo "install crossplane"
-kubectl create namespace ${CPSYS}
+kubectl create namespace ${CPSYS} 2>/dev/null
 helm repo add crossplane-stable https://charts.crossplane.io/stable 2>/dev/null
 helm repo update
 
@@ -46,5 +46,5 @@ EOF
 
 # ensure that crossplane kubernetes user has permissions:
 SA=$(kubectl -n ${CPSYS} get sa -o name | grep provider-kubernetes | sed -e 's|serviceaccount\/|crossplane-system:|g' | sed "s|crossplane-system|${CPSYS}|g")
-kubectl create clusterrolebinding crssplane-provider-kubernetes-admin-binding --clusterrole cluster-admin --serviceaccount="${SA}"
+kubectl create clusterrolebinding crssplane-provider-kubernetes-admin-binding --clusterrole cluster-admin --serviceaccount="${SA}" 
 # temporary - need for a better solution

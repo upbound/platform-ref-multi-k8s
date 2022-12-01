@@ -31,6 +31,29 @@ spec:
             name: mypod-secret
           providerConfigRef: 
             name: kubernetes-provider
-      # patches:
-      #   - fromFieldPath: spec.id
-      #     toFieldPath: metadata.labels[networks.multik8s.platformref.crossplane.io/network-id]
+      patches:
+        - fromFieldPath: metadata.namespace
+          toFieldPath: metadata.namespace
+    # - base:
+    #     apiVersion: kubernetes.crossplane.io/v1alpha1
+    #     kind: Object
+    #     spec:
+    #       forProvider:
+    #         manifest:
+    #           apiVersion: v1
+    #           kind: Pod
+    #           metadata:
+    #             name: mypod
+    #             namespace: grpl-test
+    #           spec:
+    #             containers:
+    #             - image: nginx:latest
+    #               name: mypod
+    #       writeConnectionSecretsToRef: 
+    #         namespace: grpl-test
+    #         name: mypod-secret
+    #       providerConfigRef: 
+    #         name: kubernetes-provider
+    #   # patches:
+    #   #   - fromFieldPath: spec.id
+    #   #     toFieldPath: metadata.labels[net
