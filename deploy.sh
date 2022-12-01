@@ -1,5 +1,14 @@
 . ./vars.sh
 
+echo "install crossplane"
+kubectl create namespace ${CPSYS}
+helm repo add crossplane-stable https://charts.crossplane.io/stable 2>/dev/null
+helm repo update
+
+helm upgrade --install crossplane --namespace ${CPSYS} crossplane-stable/crossplane --wait
+
+CRD=provider && echo "wait for ${CRD} to be deployed:" && until kubectl explain ${CRD} >/dev/null 2>&1; do echo -n .; sleep 1; done && echo "${CRD} deployed"
+
 echo "install the crossplane configuration"
 kubectl crossplane install configuration ${CONFIGPKG}
 

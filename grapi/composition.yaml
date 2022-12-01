@@ -26,6 +26,9 @@ spec:
                 containers:
                 - image: nginx:latest
                   name: mypod
+          writeConnectionSecretsToRef: 
+            namespace: grpl-test
+            name: mypod-secret
           providerConfigRef: 
             name: kubernetes-provider
       # patches:
