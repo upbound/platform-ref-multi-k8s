@@ -1,0 +1,44 @@
+image: grpl/gitpod-container:v0.4
+tasks:
+  - before: |
+      docker login -u $dockeruser -p $dockerpw
+      # export GOURL=https://go.dev/dl
+      # export GOFILE=go1.17.7.linux-amd64.tar.gz
+      # curl -OL ${GOURL}/${GOFILE}
+      # sudo tar -C /usr/local -xzf ${GOFILE}
+      # rm ${GOFILE}
+      # export PATH=$PATH:/usr/local/go/bin
+      # go version
+      # go install -v golang.org/x/tools/gopls@latest
+      # export ARCH=$(case $(uname -m) in x86_64) echo -n amd64 ;; aarch64) echo -n arm64 ;; *) echo -n $(uname -m) ;; esac)
+      # export OS=$(uname | awk '{print tolower($0)}')
+      # export OPERATOR_SDK_DL_URL=https://github.com/operator-framework/operator-sdk/releases/download/v1.17.0
+      # curl -LO ${OPERATOR_SDK_DL_URL}/operator-sdk_${OS}_${ARCH}
+      # chmod +x operator-sdk_${OS}_${ARCH} && sudo mv operator-sdk_${OS}_${ARCH} /usr/local/bin/operator-sdk
+    # env:
+      # name: "cloud20x"
+  - command: | 
+      civo apikey save cloud20x ${civokey} && civo region current ${civoregion} 
+      civo k8s create ${name}-${civocluster} --size=${civosize} --nodes=${civonodes} ${civoapps} -e ${civosg} || true
+      civo k8s ls
+      until [ $(civo k8s show -o custom -f Status ${name}-${civocluster}) = "ACTIVE" ]; do echo -n "."; sleep 3; done
+      civo k8s config ${name}-${civocluster} --save --merge --switch
+      # go install -v golang.org/x/tools/gopls@latest
+      ./deploy.sh
+    env:
+      name: "grpl"
+      civocluster: "dev"
+      civosize: g4s.kube.medium
+      civonodes: 5
+      civosg: d8a8ad37-2ed9-49e1-93df-d2e1c66493b2
+      civoregion: FRA1
+      civoapps: "--applications Traefik-v2-nodeport"
+  # - name: test 
+  #   command: |
+  #     for i in $(ls helm-charts/patrick); do echo $i; helm dep up helm-charts/patrick/$i; helm upgrade --install $i helm-charts/patrick/$i -n ht-$i --create-namespace;  done
+  - name: terminal
+    command: pwd
+
+# vscode:
+#   extensions:
+#     - golang.go
