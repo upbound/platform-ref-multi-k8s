@@ -26,9 +26,9 @@ kubectl apply -f hack/crossplane-cluster-admin-rolebinding.yaml
 ## `provider-aws` and `provider-helm`
 
 ```console
-PROVIDER_AWS=registry.upbound.io/crossplane/provider-aws:v0.14.0
-PROVIDER_GCP=registry.upbound.io/crossplane/provider-gcp:v0.13.0
-PROVIDER_HELM=registry.upbound.io/crossplane/provider-helm:v0.3.7
+PROVIDER_AWS=xpkgs.upbound.io/crossplane-contrib/provider-aws:v0.22.0
+PROVIDER_GCP=xpkgs.upbound.io/crossplane-contrib/provider-gcp:v0.18.0
+PROVIDER_HELM=xpkgs.upbound.io/crossplane-contrib/provider-helm:v0.9.0
 
 kubectl crossplane install provider ${PROVIDER_AWS}
 kubectl crossplane install provider ${PROVIDER_GCP}
