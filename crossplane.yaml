@@ -98,9 +98,9 @@ spec:
   crossplane:
     version: ">=v1.0.0-0"
   dependsOn:
-    - provider: xpkgs.upbound.io/crossplane-contrib/provider-aws
+    - provider: xpkg.upbound.io/crossplane-contrib/provider-aws
+      version: ">=v0.33.0-0"
+    - provider: xpkg.upbound.io/crossplane-contrib/provider-gcp
       version: ">=v0.22.0-0"
-    - provider: xpkgs.upbound.io/crossplane-contrib/provider-gcp
-      version: ">=v0.18.0-0"
-    - provider: xpkgs.upbound.io/crossplane-contrib/provider-helm
-      version: ">=v0.9.0-0"
+    - provider: xpkg.upbound.io/crossplane-contrib/provider-helm
+      version: ">=v0.12.0-0"
