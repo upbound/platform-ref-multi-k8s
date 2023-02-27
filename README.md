@@ -42,7 +42,7 @@ cp kubectl-crossplane /usr/local/bin
 #### Install the Platform Configuration
 
 ```console
-PLATFORM_CONFIG=registry.upbound.io/upbound/platform-ref-multi-k8s:v0.0.7
+PLATFORM_CONFIG=registry.upbound.io/upbound/platform-ref-multi-k8s:v0.0.11
 
 kubectl crossplane install configuration ${PLATFORM_CONFIG}
 kubectl get pkg
