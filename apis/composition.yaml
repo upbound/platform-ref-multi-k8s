@@ -1,0 +1,376 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xclusters.multik8s.platformref.upbound.io
+spec:
+  writeConnectionSecretsToNamespace: upbound-system
+  compositeTypeRef:
+    apiVersion: multik8s.platformref.upbound.io/v1alpha1
+    kind: XCluster
+  mode: Pipeline
+  pipeline:
+    - step: patch-and-transform
+      functionRef:
+        name: borrelli-org-function-conditional-patch-and-transform
+      input:
+        apiVersion: pt.fn.crossplane.io/v1beta1
+        kind: Resources
+        resources:
+          - name: XNetworkAWS
+            condition: observed.composite.resource.spec.parameters.cloud == "aws"
+            base:
+              apiVersion: aws.platform.upbound.io/v1alpha1
+              kind: XNetwork
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.id
+                toFieldPath: spec.parameters.id
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.region
+                toFieldPath: spec.parameters.region
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.deletionPolicy
+                toFieldPath: spec.parameters.deletionPolicy
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.providerConfigName
+                toFieldPath: spec.parameters.providerConfigName
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.networkSelector
+                toFieldPath: spec.compositionSelector.matchLabels[type]
+              - type: ToCompositeFieldPath
+                fromFieldPath: status.subnetIds
+                policy:
+                  fromFieldPath: Required
+                toFieldPath: status.subnetIds
+
+          - name: XEKS
+            condition: observed.composite.resource.spec.parameters.cloud == "aws"
+            base:
+              apiVersion: aws.platform.upbound.io/v1alpha1
+              kind: XEKS
+            connectionDetails:
+              - type: FromConnectionSecretKey
+                fromConnectionSecretKey: kubeconfig
+                name: kubeconfig
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.id
+                toFieldPath: metadata.labels[xeks.aws.platform.upbound.io/cluster-id]
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.id
+                toFieldPath: spec.parameters.id
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.region
+                toFieldPath: spec.parameters.region
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.deletionPolicy
+                toFieldPath: spec.parameters.deletionPolicy
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.providerConfigName
+                toFieldPath: spec.parameters.providerConfigName
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.id
+                toFieldPath: metadata.annotations[crossplane.io/external-name]
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.uid
+                toFieldPath: spec.writeConnectionSecretToRef.name
+                transforms:
+                  - type: string
+                    string:
+                      fmt: '%s-eks'
+                      type: Format
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.writeConnectionSecretToRef.namespace
+                toFieldPath: spec.writeConnectionSecretToRef.namespace
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.version
+                toFieldPath: spec.parameters.version
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.nodes.count
+                toFieldPath: spec.parameters.nodes.count
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.nodes.instanceType
+                toFieldPath: spec.parameters.nodes.instanceType
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.iam.roleArn
+                toFieldPath: spec.parameters.iam.roleArn
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.iam.userArn
+                toFieldPath: spec.parameters.iam.userArn
+
+          - name: usageXEksByXFlux
+            condition: observed.composite.resource.spec.parameters.cloud == "aws"
+            base:
+              apiVersion: apiextensions.crossplane.io/v1alpha1
+              kind: Usage
+              spec:
+                by:
+                  apiVersion: gitops.platform.upbound.io/v1alpha1
+                  kind: XFlux
+                  resourceSelector:
+                    matchControllerRef: true
+                of:
+                  apiVersion: aws.platform.upbound.io/v1alpha1
+                  kind: XEKS
+                  resourceSelector:
+                    matchControllerRef: true
+
+          - name: usageXEksByXOss
+            condition: observed.composite.resource.spec.parameters.cloud == "aws"
+            base:
+              apiVersion: apiextensions.crossplane.io/v1alpha1
+              kind: Usage
+              spec:
+                by:
+                  apiVersion: observe.platform.upbound.io/v1alpha1
+                  kind: XOss
+                  resourceSelector:
+                    matchControllerRef: true
+                of:
+                  apiVersion: aws.platform.upbound.io/v1alpha1
+                  kind: XEKS
+                  resourceSelector:
+                    matchControllerRef: true
+
+          - name: XNetworkAZURE
+            condition: observed.composite.resource.spec.parameters.cloud == "azure"
+            base:
+              apiVersion: azure.platform.upbound.io/v1alpha1
+              kind: XNetwork
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.id
+                toFieldPath: spec.parameters.id
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.region
+                toFieldPath: spec.parameters.region
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.deletionPolicy
+                toFieldPath: spec.parameters.deletionPolicy
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.providerConfigName
+                toFieldPath: spec.parameters.providerConfigName
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.networkSelector
+                toFieldPath: spec.compositionSelector.matchLabels[type]
+
+          - name: XAKS
+            condition: observed.composite.resource.spec.parameters.cloud == "azure"
+            base:
+              apiVersion: azure.platform.upbound.io/v1alpha1
+              kind: XAKS
+            connectionDetails:
+              - type: FromConnectionSecretKey
+                fromConnectionSecretKey: kubeconfig
+                name: kubeconfig
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.id
+                toFieldPath: metadata.labels[xaks.azure.platform.upbound.io/cluster-id]
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.id
+                toFieldPath: spec.parameters.id
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.region
+                toFieldPath: spec.parameters.region
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.deletionPolicy
+                toFieldPath: spec.parameters.deletionPolicy
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.providerConfigName
+                toFieldPath: spec.parameters.providerConfigName
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.uid
+                toFieldPath: spec.writeConnectionSecretToRef.name
+                transforms:
+                  - type: string
+                    string:
+                      fmt: '%s-aks'
+                      type: Format
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.writeConnectionSecretToRef.namespace
+                toFieldPath: spec.writeConnectionSecretToRef.namespace
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.version
+                toFieldPath: spec.parameters.version
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.nodes.count
+                toFieldPath: spec.parameters.nodes.count
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.nodes.instanceType
+                toFieldPath: spec.parameters.nodes.instanceType
+
+          - name: usageXAksByXFlux
+            condition: observed.composite.resource.spec.parameters.cloud == "azure"
+            base:
+              apiVersion: apiextensions.crossplane.io/v1alpha1
+              kind: Usage
+              spec:
+                by:
+                  apiVersion: gitops.platform.upbound.io/v1alpha1
+                  kind: XFlux
+                  resourceSelector:
+                    matchControllerRef: true
+                of:
+                  apiVersion: azure.platform.upbound.io/v1alpha1
+                  kind: XAKS
+                  resourceSelector:
+                    matchControllerRef: true
+
+          - name: usageXAksByXOss
+            condition: observed.composite.resource.spec.parameters.cloud == "azure"
+            base:
+              apiVersion: apiextensions.crossplane.io/v1alpha1
+              kind: Usage
+              spec:
+                by:
+                  apiVersion: observe.platform.upbound.io/v1alpha1
+                  kind: XOss
+                  resourceSelector:
+                    matchControllerRef: true
+                of:
+                  apiVersion: azure.platform.upbound.io/v1alpha1
+                  kind: XAKS
+                  resourceSelector:
+                    matchControllerRef: true
+
+          - name: XNetworkGCP
+            condition: observed.composite.resource.spec.parameters.cloud == "gcp"
+            base:
+              apiVersion: gcp.platform.upbound.io/v1alpha1
+              kind: XNetwork
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.id
+                toFieldPath: spec.parameters.id
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.region
+                toFieldPath: spec.parameters.region
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.deletionPolicy
+                toFieldPath: spec.parameters.deletionPolicy
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.providerConfigName
+                toFieldPath: spec.parameters.providerConfigName
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.networkSelector
+                toFieldPath: spec.compositionSelector.matchLabels[type]
+
+          - name: XGKE
+            condition: observed.composite.resource.spec.parameters.cloud == "gcp"
+            base:
+              apiVersion: gcp.platform.upbound.io/v1alpha1
+              kind: XGKE
+            connectionDetails:
+              - type: FromConnectionSecretKey
+                fromConnectionSecretKey: kubeconfig
+                name: kubeconfig
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.id
+                toFieldPath: metadata.labels[xgke.gcp.platform.upbound.io/cluster-id]
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.id
+                toFieldPath: spec.parameters.id
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.region
+                toFieldPath: spec.parameters.region
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.deletionPolicy
+                toFieldPath: spec.parameters.deletionPolicy
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.providerConfigName
+                toFieldPath: spec.parameters.providerConfigName
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.id
+                toFieldPath: metadata.annotations[crossplane.io/external-name]
+              - type: FromCompositeFieldPath
+                fromFieldPath: metadata.uid
+                toFieldPath: spec.writeConnectionSecretToRef.name
+                transforms:
+                  - type: string
+                    string:
+                      fmt: '%s-gke'
+                      type: Format
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.writeConnectionSecretToRef.namespace
+                toFieldPath: spec.writeConnectionSecretToRef.namespace
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.version
+                toFieldPath: spec.parameters.version
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.nodes.count
+                toFieldPath: spec.parameters.nodes.count
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.nodes.instanceType
+                toFieldPath: spec.parameters.nodes.instanceType
+
+          - name: usageXGkeByXFlux
+            condition: observed.composite.resource.spec.parameters.cloud == "gcp"
+            base:
+              apiVersion: apiextensions.crossplane.io/v1alpha1
+              kind: Usage
+              spec:
+                by:
+                  apiVersion: gitops.platform.upbound.io/v1alpha1
+                  kind: XFlux
+                  resourceSelector:
+                    matchControllerRef: true
+                of:
+                  apiVersion: gcp.platform.upbound.io/v1alpha1
+                  kind: XGKE
+                  resourceSelector:
+                    matchControllerRef: true
+
+          - name: usageXGkeByXOss
+            condition: observed.composite.resource.spec.parameters.cloud == "gcp"
+            base:
+              apiVersion: apiextensions.crossplane.io/v1alpha1
+              kind: Usage
+              spec:
+                by:
+                  apiVersion: observe.platform.upbound.io/v1alpha1
+                  kind: XOss
+                  resourceSelector:
+                    matchControllerRef: true
+                of:
+                  apiVersion: gcp.platform.upbound.io/v1alpha1
+                  kind: XGKE
+                  resourceSelector:
+                    matchControllerRef: true
+
+          - name: XOss
+            base:
+              apiVersion: observe.platform.upbound.io/v1alpha1
+              kind: XOss
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.deletionPolicy
+                toFieldPath: spec.parameters.deletionPolicy
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.id
+                toFieldPath: spec.parameters.id
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.operators.prometheus.version
+                toFieldPath: spec.parameters.operators.prometheus.version
+
+          - name: XFlux
+            base:
+              apiVersion: gitops.platform.upbound.io/v1alpha1
+              kind: XFlux
+            patches:
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.deletionPolicy
+                toFieldPath: spec.parameters.deletionPolicy
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.id
+                toFieldPath: spec.parameters.providerConfigName
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.operators.flux.version
+                toFieldPath: spec.parameters.operators.flux.version
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.operators.flux-sync.version
+                toFieldPath: spec.parameters.operators.flux-sync.version
+              - type: FromCompositeFieldPath
+                fromFieldPath: spec.parameters.gitops
+                toFieldPath: spec.parameters.source

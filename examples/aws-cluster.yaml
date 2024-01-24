@@ -1,0 +1,36 @@
+apiVersion: multik8s.platformref.upbound.io/v1alpha1
+kind: Cluster
+metadata:
+  name: platform-ref-multi-k8s-aws
+  namespace: default
+spec:
+  compositeDeletePolicy: Foreground
+  parameters:
+    cloud: aws
+    id: platform-ref-multi-k8s-aws
+    region: us-west-2
+    version: "1.27"
+    iam:
+      # Important: Please specify an iamRoleArn to access the AWS EKS Cluster deployed as part of CNOE.
+      # Without specifying a valid roleArn, you will not be able to log in to the EKS cluster.
+      # If you are using AWS SSO Roles, ensure to remove 'aws-reserved/sso.amazonaws.com/' from the ARN.
+      # For example, convert this:
+      #   arn:aws:iam::123456789:role/aws-reserved/sso.amazonaws.com/AWSReservedSSO_AdministratorAccess_d703c73ed340fde7
+      # To this:
+      #   arn:aws:iam::123456789:role/AWSReservedSSO_AdministratorAccess_d703c73ed340fde7
+      # roleArn: arn:aws:iam::123456789:role/AWSReservedSSO_AdministratorAccess_d703c73ed340fde7
+      roleArn: ${data.aws_eks_iam_default_admin}
+    nodes:
+      count: 3
+      instanceType: t3.small
+    gitops:
+      git:
+        url: https://github.com/upbound/platform-ref-multi-k8s/
+        ref:
+          # refs/heads/main
+          # refs/tags/v0.1.0
+          # refs/pull/420/head
+          # refs/merge-requests/1/head
+          name: refs/heads/main
+  writeConnectionSecretToRef:
+    name: platform-ref-multi-k8s-aws-kubeconfig
