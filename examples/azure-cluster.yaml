@@ -1,13 +1,13 @@
 apiVersion: multik8s.platformref.upbound.io/v1alpha1
 kind: Cluster
 metadata:
-  name: platform-ref-multi-k8s-azure
+  name: platform-ref-m-k8s-azure
   namespace: default
 spec:
   compositeDeletePolicy: Foreground
   parameters:
     cloud: azure
-    id: platform-ref-multi-k8s-azure
+    id: platform-ref-m-k8s-azure
     region: westus
     version: "1.27.3"
     nodes:
@@ -23,4 +23,4 @@ spec:
           # refs/merge-requests/1/head
           name: refs/heads/main
   writeConnectionSecretToRef:
-    name: platform-ref-multi-k8s-azure-kubeconfig
+    name: platform-ref-m-k8s-azure-kubeconfig

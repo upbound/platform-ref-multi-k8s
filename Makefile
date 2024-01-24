@@ -13,7 +13,7 @@ PLATFORMS ?= linux_amd64
 
 UP_VERSION = v0.21.0
 UP_CHANNEL = stable
-UPTEST_VERSION = v0.6.1
+UPTEST_VERSION = v0.9.0
 
 -include build/makelib/k8s_tools.mk
 # ====================================================================================
@@ -65,7 +65,7 @@ build.init: $(UP)
 # - UPTEST_DATASOURCE_PATH (optional), see https://github.com/upbound/uptest#injecting-dynamic-values-and-datasource
 uptest: $(UPTEST) $(KUBECTL) $(KUTTL)
 	@$(INFO) running automated tests
-	@KUBECTL=$(KUBECTL) KUTTL=$(KUTTL) CROSSPLANE_NAMESPACE=$(CROSSPLANE_NAMESPACE) $(UPTEST) e2e examples/aws-cluster.yaml --data-source="${UPTEST_DATASOURCE_PATH}" --setup-script=test/setup.sh --default-timeout=2400 || $(FAIL)
+	@KUBECTL=$(KUBECTL) KUTTL=$(KUTTL) CROSSPLANE_NAMESPACE=$(CROSSPLANE_NAMESPACE) $(UPTEST) e2e examples/azure-cluster.yaml --data-source="${UPTEST_DATASOURCE_PATH}" --setup-script=test/setup.sh --default-timeout=4800 || $(FAIL)
 	@$(OK) running automated tests
 
 # This target requires the following environment variables to be set:
@@ -75,7 +75,8 @@ e2e: build controlplane.up local.xpkg.deploy.configuration.$(PROJECT_NAME) uptes
 
 render:
 	crossplane beta render examples/aws-cluster.yaml apis/composition.yaml examples/functions.yaml -r
-
+	crossplane beta render examples/gcp-cluster.yaml apis/composition.yaml examples/functions.yaml -r
+	crossplane beta render examples/azure-cluster.yaml apis/composition.yaml examples/functions.yaml -r
 yamllint:
 	@$(INFO) running yamllint
 	@yamllint ./apis || $(FAIL)
