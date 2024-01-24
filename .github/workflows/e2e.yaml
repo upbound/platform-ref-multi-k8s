@@ -1,0 +1,197 @@
+name: Run Uptest
+
+on:
+  issue_comment:
+    types: [created]
+
+env:
+  trigger-keyword: '/test-examples'
+  go-version: '1.19'
+  package-type: configuration
+
+jobs:
+  debug:
+    runs-on: [e2-standard-8, linux]
+    steps:
+      - name: Debug
+        run: |
+          echo "Trigger keyword: ${{ env.trigger-keyword }}"
+          echo "Go version: ${{ env.go-version }}"
+          echo "github.event.comment.author_association: ${{ github.event.comment.author_association }}"
+          echo "github.event.comment.body: ${{ github.event.comment.body }}"
+
+  get-example-list:
+    if: ${{ (github.event.comment.author_association == 'OWNER' || github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'COLLABORATOR' || github.event.comment.author_association == 'CONTRIBUTOR' ) &&
+            github.event.issue.pull_request &&
+            contains(github.event.comment.body, env.trigger-keyword ) }}
+    runs-on: [e2-standard-8, linux]
+    outputs:
+      example_list: ${{ steps.get-example-list-name.outputs.example-list }}
+      example_hash: ${{ steps.get-example-list-name.outputs.example-hash }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3
+        with:
+          submodules: true
+
+      - name: Checkout PR
+        id: checkout-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr checkout ${{ github.event.issue.number }}
+          git submodule update --init --recursive
+          OUTPUT=$(git log -1 --format='%H')
+          echo "commit-sha=$OUTPUT" >> $GITHUB_OUTPUT
+
+      - name: Prepare The Example List
+        env:
+          COMMENT: ${{ github.event.comment.body }}
+        id: get-example-list-name
+        run: |
+          PATHS=$(echo $COMMENT | sed 's/^.*\${{ env.trigger-keyword }}="//g' | cut -d '"' -f 1 | sed 's/,/ /g')
+          EXAMPLE_LIST=""
+          for P in $PATHS; do EXAMPLE_LIST="${EXAMPLE_LIST},$(find $P -name '*.yaml' | tr '\n' ',')"; done
+
+          sudo apt-get -y install coreutils
+          COUNT=$(echo ${EXAMPLE_LIST:1} | grep -o ".yaml" | wc -l)
+          if [ $COUNT -gt 1 ]; then EXAMPLE_HASH=$(echo ${EXAMPLE_LIST} | md5sum | cut -f1 -d" "); else EXAMPLE_HASH=$(echo ${EXAMPLE_LIST:1} | sed 's/.$//'); fi
+
+          echo "Examples: ${EXAMPLE_LIST:1}"
+          echo "Example Hash: ${EXAMPLE_HASH}"
+
+          echo "example-list=${EXAMPLE_LIST:1}" >> $GITHUB_OUTPUT
+          echo "example-hash=${EXAMPLE_HASH}" >> $GITHUB_OUTPUT
+
+      - name: Create Pending Status Check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/statuses/${{ steps.checkout-pr.outputs.commit-sha }} \
+            -f state='pending' \
+            -f target_url='https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}' \
+            -f description='Running...' \
+            -f context="Uptest-${{ steps.get-example-list-name.outputs.example-hash }}"
+
+  uptest:
+    if: ${{ (github.event.comment.author_association == 'OWNER' || github.event.comment.author_association == 'MEMBER' || github.event.comment.author_association == 'COLLABORATOR' || github.event.comment.author_association == 'CONTRIBUTOR' ) &&
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, env.trigger-keyword ) }}
+    runs-on: [e2-standard-8, linux]
+    needs: get-example-list
+
+    steps:
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@2b82ce82d56a2a04d2637cd93a637ae1b359c0a7 # v2
+        with:
+          platforms: all
+
+      - name: Checkout
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3
+        with:
+          submodules: true
+
+      - name: Setup Go
+        uses: actions/setup-go@6edd4406fa81c3da01a34fa6f6343087c207a568 # v3
+        with:
+          go-version: ${{ env.go-version }}
+
+      - name: Checkout PR
+        id: checkout-pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr checkout ${{ github.event.issue.number }}
+          git submodule update --init --recursive
+          OUTPUT=$(git log -1 --format='%H')
+          echo "commit-sha=$OUTPUT" >> $GITHUB_OUTPUT
+
+      - name: Find the Go Build Cache
+        if: ${{ env.package-type  == 'provider' }}
+        id: go
+        run: echo "cache=$(make go.cachedir)" >> $GITHUB_OUTPUT
+
+      - name: Cache the Go Build Cache
+        if: ${{ env.package-type  == 'provider' }}
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3
+        with:
+          path: ${{ steps.go.outputs.cache }}
+          key: ${{ runner.os }}-build-uptest-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-build-uptest-
+
+      - name: Cache Go Dependencies
+        if: ${{ env.package-type  == 'provider' }}
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3
+        with:
+          path: .work/pkg
+          key: ${{ runner.os }}-pkg-${{ hashFiles('**/go.sum') }}
+          restore-keys: ${{ runner.os }}-pkg-
+
+      - name: Vendor Dependencies
+        if: ${{ env.package-type  == 'provider' }}
+        run: make vendor vendor.check
+
+      - name: Run Uptest
+        id: run-uptest
+        env:
+          UPTEST_AWS_CLOUD_CREDENTIALS: ${{ secrets.UPTEST_AWS_CLOUD_CREDENTIALS }}
+          UPTEST_AZURE_CLOUD_CREDENTIALS: ${{ secrets.UPTEST_AZURE_CLOUD_CREDENTIALS }}
+          UPTEST_GCP_CLOUD_CREDENTIALS: ${{ secrets.UPTEST_GCP_CLOUD_CREDENTIALS }}
+          UPTEST_UPBOUND_CLOUD_CREDENTIALS: ${{ secrets.UPTEST_UPBOUND_CLOUD_CREDENTIALS }}
+          UPTEST_EXAMPLE_LIST: ${{ needs.get-example-list.outputs.example_list }}
+          UPTEST_TEST_DIR: ./_output/controlplane-dump
+          UPTEST_DATASOURCE_PATH: .work/uptest-datasource.yaml
+        run: |
+          mkdir -p .work && echo "${{ secrets.UPTEST_DATASOURCE }}" > .work/uptest-datasource.yaml
+          make e2e
+
+      - name: Create Successful Status Check
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXAMPLE_HASH: ${{ needs.get-example-list.outputs.example_hash }}
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/statuses/${{ steps.checkout-pr.outputs.commit-sha }} \
+            -f state='success' \
+            -f target_url='https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}' \
+            -f description='Passed' \
+            -f context="Uptest-${EXAMPLE_HASH}"
+
+      - name: Collect Cluster Dump
+        if: always()
+        run: |
+          make controlplane.dump
+
+      - name: Upload Cluster Dump
+        if: always()
+        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3
+        with:
+          name: controlplane-dump
+          path: ./_output/controlplane-dump
+
+      - name: Cleanup
+        if: always()
+        run: |
+          eval $(make --no-print-directory build.vars)
+          ${KUBECTL} delete managed --all || true
+
+      - name: Create Unsuccessful Status Check
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EXAMPLE_HASH: ${{ needs.get-example-list.outputs.example_hash }}
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            /repos/${{ github.repository }}/statuses/${{ steps.checkout-pr.outputs.commit-sha }} \
+            -f state='failure' \
+            -f target_url='https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}' \
+            -f description='Failed' \
+            -f context="Uptest-${EXAMPLE_HASH}"
