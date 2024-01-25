@@ -1,0 +1,26 @@
+apiVersion: multik8s.platformref.upbound.io/v1alpha1
+kind: Cluster
+metadata:
+  name: platform-ref-m-k8s-azure
+  namespace: default
+spec:
+  compositeDeletePolicy: Foreground
+  parameters:
+    cloud: azure
+    id: platform-ref-m-k8s-azure
+    region: westus
+    version: "1.27.3"
+    nodes:
+      count: 1
+      instanceType: Standard_B2s
+    gitops:
+      git:
+        url: https://github.com/upbound/platform-ref-multi-k8s/
+        ref:
+          # refs/heads/main
+          # refs/tags/v0.1.0
+          # refs/pull/420/head
+          # refs/merge-requests/1/head
+          name: refs/heads/main
+  writeConnectionSecretToRef:
+    name: platform-ref-m-k8s-azure-kubeconfig

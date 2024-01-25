@@ -1,0 +1,6 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: Function
+metadata:
+  name: borrelli-org-function-conditional-patch-and-transform
+spec:
+  package: xpkg.upbound.io/borrelli-org/function-conditional-patch-and-transform:v0.4.0
