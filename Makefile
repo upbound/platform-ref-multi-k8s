@@ -59,10 +59,7 @@ build.init: $(UP)
 # End to End Testing
 
 # This target requires the following environment variables to be set:
-# - UPTEST_CLOUD_CREDENTIALS, cloud credentials for the provider being tested, e.g. export UPTEST_CLOUD_CREDENTIALS=$(cat ~/.aws/credentials)
-# - To ensure the proper functioning of the end-to-end test resource pre-deletion hook, it is crucial to arrange your resources appropriately. 
-#   You can check the basic implementation here: https://github.com/upbound/uptest/blob/main/internal/templates/01-delete.yaml.tmpl.
-# - UPTEST_DATASOURCE_PATH (optional), see https://github.com/upbound/uptest#injecting-dynamic-values-and-datasource
+# $ export UPTEST_CLOUD_CREDENTIALS=$(echo "AWS='$(cat ~/.aws/credentials)'\nAZURE='$(cat ~/.azure/credentials.json)'\nGCP='$(cat ~/.gcloud/credentials.json)")
 uptest: $(UPTEST) $(KUBECTL) $(KUTTL)
 	@$(INFO) running automated tests
 	@KUBECTL=$(KUBECTL) KUTTL=$(KUTTL) CROSSPLANE_NAMESPACE=$(CROSSPLANE_NAMESPACE) $(UPTEST) e2e examples/aws-cluster.yaml,examples/gcp-cluster.yaml,examples/azure-cluster.yaml --data-source="${UPTEST_DATASOURCE_PATH}" --setup-script=test/setup.sh --default-timeout=4800 || $(FAIL)
