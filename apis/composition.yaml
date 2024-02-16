@@ -11,7 +11,7 @@ spec:
   pipeline:
     - step: patch-and-transform
       functionRef:
-        name: borrelli-org-function-conditional-patch-and-transform
+        name: upboundcare-function-conditional-patch-and-transform
       input:
         apiVersion: pt.fn.crossplane.io/v1beta1
         kind: Resources
