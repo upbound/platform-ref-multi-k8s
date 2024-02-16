@@ -51,7 +51,7 @@ spec:
       version: "v0.3.0"
     - configuration: xpkg.upbound.io/upbound/configuration-azure-aks
       # renovate: datasource=github-releases depName=upbound/configuration-azure-aks
-      version: "v0.1.0"
+      version: "v0.4.0"
     - configuration: xpkg.upbound.io/upbound/configuration-gcp-network
       # renovate: datasource=github-releases depName=upbound/configuration-gcp-network
       version: "v0.1.0"
