@@ -57,7 +57,7 @@ spec:
       version: "v0.1.0"
     - configuration: xpkg.upbound.io/upbound/configuration-gcp-gke
       # renovate: datasource=github-releases depName=upbound/configuration-gcp-gke
-      version: "v0.1.0"
+      version: "v0.2.0"
     - function: xpkg.upbound.io/borrelli-org/function-conditional-patch-and-transform
       # renovate: datasource=github-releases depName=borrelli-org/function-conditional-patch-and-transform
       version: "v0.4.0"
