@@ -57,7 +57,7 @@ spec:
       version: "v0.2.0"
     - configuration: xpkg.upbound.io/upbound/configuration-gcp-gke
       # renovate: datasource=github-releases depName=upbound/configuration-gcp-gke
-      version: "v0.2.0"
+      version: "v0.5.0"
     - function: xpkg.upbound.io/upboundcare/function-conditional-patch-and-transform
       version: "v0.4.0"
     - configuration: xpkg.upbound.io/upbound/configuration-observability-oss
